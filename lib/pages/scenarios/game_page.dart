@@ -14,27 +14,27 @@ class _GamePageState extends State<GamePage> {
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
+            fit: BoxFit.cover,
             image: AssetImage(
               'assets/img/default_background.jpeg',
             ),
           ),
         ),
+        child: Stack(
+          children: [
+            //Character Layer
+            const Center(
+              child: Image(
+                image: AssetImage(
+                  'assets/img/default_char.png',
+                ),
+              ),
+            ),
+            //UI Layer
+            Container(),
+          ],
+        ),
       ),
-
-      // Center(
-      //   child: Column(
-      //     mainAxisAlignment: MainAxisAlignment.center,
-      //     children: <Widget>[
-      //       const Text(
-      //         'GamePage',
-      //       ),
-      //       Text(
-      //         'Nothing here yet',
-      //         style: Theme.of(context).textTheme.headline4,
-      //       ),
-      //     ],
-      //   ),
-      // ),
     );
   }
 }
