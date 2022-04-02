@@ -1,3 +1,4 @@
+import 'package:ecodate/entities/segment.dart';
 import 'package:ecodate/pages/scenarios/game_page.dart';
 import 'package:flutter/material.dart';
 
@@ -15,7 +16,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const GamePage(),
+      home: GamePage(
+        sceneInfo: SceneInfo(
+          initialSegmentId: 1,
+          backgroundName: 'assets/img/default_background.png',
+        ),
+      ),
     );
   }
 }
