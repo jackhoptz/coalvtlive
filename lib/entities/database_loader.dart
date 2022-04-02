@@ -107,6 +107,7 @@ class MockDatabaseLoader implements DatabaseLoader {
           expression: ExpressionType.none,
         )
       ],
+      characterType: CharacterType.coal,
     );
   }
 }

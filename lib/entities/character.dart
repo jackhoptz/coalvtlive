@@ -11,9 +11,24 @@ class CharacterInfo {
     required this.logoUrl,
     required this.color,
     required this.expressions,
+    required this.characterType,
   });
   String name;
   String logoUrl;
   Color color;
   List<ExpressionInfo> expressions;
+  CharacterType characterType;
+
+  ExpressionInfo getExpression(ExpressionType expressionType) =>
+      expressions.firstWhere((element) => element.expression == expressionType);
+}
+
+extension CharacterFilter on List<CharacterInfo> {
+  CharacterInfo? whereCharIs(CharacterType characterType) {
+    try {
+      return firstWhere((element) => element.characterType == characterType);
+    } catch (e) {
+      return null;
+    }
+  }
 }

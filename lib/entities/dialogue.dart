@@ -6,10 +6,10 @@ class Dialogue {
     required this.textLine,
     required this.character,
     this.stageDirections,
-    this.expression = ExpressionType.none,
+    this.expressionType = ExpressionType.none,
   });
   String textLine;
-  ExpressionType expression;
+  ExpressionType expressionType;
   CharacterType character;
   //Not implemented yet
   //Stage Directions - when a character enters, exits, or changes places on screen.

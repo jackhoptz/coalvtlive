@@ -1,3 +1,6 @@
+import 'package:ecodate/entities/character.dart';
+import 'package:ecodate/entities/database_loader.dart';
+import 'package:ecodate/entities/dialogue.dart';
 import 'package:ecodate/entities/segment.dart';
 import 'package:flutter/material.dart';
 
@@ -19,25 +22,34 @@ class GamePage extends StatefulWidget {
 
 class _GamePageState extends State<GamePage> {
   int segmentIndex = 0;
-  late Segment segment;
+  Segment? _segment;
+  List<CharacterInfo> characters = [];
+
+  Segment get segment => _segment!;
+  set segment(Segment value) => _segment = value;
+
+  Dialogue get currerntLine {
+    return segment.dialogueLines[segmentIndex];
+  }
 
   @override
   void initState() {
     super.initState();
+    loadInitialData();
   }
 
-  Future<dynamic> loadInitialSegment() async {
-    segment =
-        await SegmentProcessor().loadSegment(widget.sceneInfo.initialSegmentId);
+  Future<dynamic> loadInitialData() async {
+    loadSegment(widget.sceneInfo.initialSegmentId);
+    final coal =
+        await DatabaseLoader.sharedInstance.loadCharacter(CharacterType.coal);
+    characters = [coal];
     return segment;
   }
 
-  void presentSegmentOption() {
-    //segment.options
-    loadNextSegment();
+  void loadSegment(int segmentId) async {
+    segment = await DatabaseLoader.sharedInstance.loadSegment(segmentId);
+    setState(() => segmentIndex = 0);
   }
-
-  void loadNextSegment() {}
 
   void loadNextScene() {
     //Load scene from database
@@ -54,6 +66,56 @@ class _GamePageState extends State<GamePage> {
     }
   }
 
+  Widget _buildButton(FlagOption option) {
+    return GestureDetector(
+      onTap: () {
+        loadSegment(option.nextSegmentId);
+        Navigator.of(context).pop();
+      },
+      child: Container(
+        margin: EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(
+            Radius.circular(15),
+          ),
+          color: characters.whereCharIs(currerntLine.character)?.color ??
+              Colors.white,
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 25, vertical: 5),
+        child: BubText(
+          option.text,
+        ),
+      ),
+    );
+  }
+
+  void presentSegmentOption() {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return DefaultTextStyle(
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 40,
+            fontFamily: 'CatchyMelody',
+            letterSpacing: 3.5,
+          ),
+          child: Container(
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: segment.options
+                        ?.map(
+                          (element) => _buildButton(element),
+                        )
+                        .toList() ??
+                    []),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,19 +128,14 @@ class _GamePageState extends State<GamePage> {
             ),
           ),
         ),
-        child: FutureBuilder(
-            future: loadInitialSegment(),
-            builder: (BuildContext context, AsyncSnapshot<dynamic> snapshot) {
-              if (snapshot.hasData) {
-                return Stack(
-                  children: [
-                    _buildCharactersLayer(),
-                    _buildUILayer(),
-                  ],
-                );
-              }
-              return Container();
-            }),
+        child: _segment == null
+            ? Container()
+            : Stack(
+                children: [
+                  _buildCharactersLayer(),
+                  _buildUILayer(),
+                ],
+              ),
       ),
     );
   }
@@ -91,11 +148,15 @@ class _GamePageState extends State<GamePage> {
         Container(
           height: 120,
         ),
-        const Expanded(
+        Expanded(
           child: SizedBox(
             child: Image(
               image: AssetImage(
-                'assets/img/default_char.png',
+                characters
+                        .whereCharIs(currerntLine.character)
+                        ?.getExpression(currerntLine.expressionType)
+                        .expressionUrl ??
+                    '',
               ),
             ),
           ),
@@ -131,38 +192,18 @@ class _GamePageState extends State<GamePage> {
                     topRight: Radius.circular(15),
                     topLeft: Radius.circular(15),
                   ),
-                  color: Colors.blueAccent,
+                  color:
+                      characters.whereCharIs(currerntLine.character)?.color ??
+                          Colors.white,
                   border: Border.all(
                     width: 12.5,
-                    color: Colors.blueAccent,
+                    color:
+                        characters.whereCharIs(currerntLine.character)?.color ??
+                            Colors.white,
                   ),
                 ),
-                child: Text(
-                  segment.dialogueLines[segmentIndex].character.toString(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 40,
-                    fontFamily: 'CatchyMelody',
-                    letterSpacing: 3.5,
-                    shadows: [
-                      Shadow(
-                          // bottomLeft
-                          offset: Offset(-2.25, -2.25),
-                          color: Colors.black),
-                      Shadow(
-                          // bottomRight
-                          offset: Offset(2.25, -2.25),
-                          color: Colors.black),
-                      Shadow(
-                          // topRight
-                          offset: Offset(2.25, 2.25),
-                          color: Colors.black),
-                      Shadow(
-                          // topLeft
-                          offset: Offset(-2.25, 2.25),
-                          color: Colors.black),
-                    ],
-                  ),
+                child: BubText(
+                  characters.whereCharIs(currerntLine.character)?.name ?? '',
                 ),
               ),
               Container(
@@ -183,7 +224,9 @@ class _GamePageState extends State<GamePage> {
                   color: Colors.black.withAlpha(200),
                   border: Border.all(
                     width: 12.5,
-                    color: Colors.blueAccent,
+                    color:
+                        characters.whereCharIs(currerntLine.character)?.color ??
+                            Colors.white,
                   ),
                 ),
                 child: Text(
@@ -196,6 +239,43 @@ class _GamePageState extends State<GamePage> {
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class BubText extends StatelessWidget {
+  const BubText(this.text, {Key? key}) : super(key: key);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 40,
+        fontFamily: 'CatchyMelody',
+        letterSpacing: 3.5,
+        shadows: [
+          Shadow(
+              // bottomLeft
+              offset: Offset(-2.25, -2.25),
+              color: Colors.black),
+          Shadow(
+              // bottomRight
+              offset: Offset(2.25, -2.25),
+              color: Colors.black),
+          Shadow(
+              // topRight
+              offset: Offset(2.25, 2.25),
+              color: Colors.black),
+          Shadow(
+              // topLeft
+              offset: Offset(-2.25, 2.25),
+              color: Colors.black),
         ],
       ),
     );
