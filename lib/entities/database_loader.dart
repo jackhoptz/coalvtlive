@@ -1,11 +1,14 @@
 import 'package:ecodate/entities/character.dart';
 import 'package:ecodate/entities/dialogue.dart';
+import 'package:ecodate/entities/expression.dart';
 import 'package:ecodate/entities/segment.dart';
+import 'package:flutter/material.dart';
 
 abstract class DatabaseLoader {
   static DatabaseLoader sharedInstance = MockDatabaseLoader();
 
   Future<Segment> loadSegment(int segmentId);
+  Future<CharacterInfo> loadCharacter(CharacterType characterType);
 }
 
 class MockDatabaseLoader implements DatabaseLoader {
@@ -90,5 +93,20 @@ class MockDatabaseLoader implements DatabaseLoader {
   @override
   Future<Segment> loadSegment(segmentId) async {
     return mockSegmentsData.firstWhere((element) => element.id == segmentId);
+  }
+
+  @override
+  Future<CharacterInfo> loadCharacter(CharacterType characterType) async {
+    return CharacterInfo(
+      name: 'Coal Troptaz',
+      logoUrl: 'assets/img/coal_logo.png',
+      color: Color(0xFF5089ff),
+      expressions: [
+        ExpressionInfo(
+          expressionUrl: 'assets/img/coal_expression_none.png',
+          expression: ExpressionType.none,
+        )
+      ],
+    );
   }
 }
