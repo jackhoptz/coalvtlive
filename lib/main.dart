@@ -1,5 +1,6 @@
 import 'package:ecodate/entities/segment.dart';
 import 'package:ecodate/pages/scenarios/game_page.dart';
+import 'package:ecodate/router.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -16,12 +17,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: GamePage(
-        sceneInfo: SceneInfo(
-          initialSegmentId: 1,
-          backgroundName: 'assets/img/default_background.png',
-        ),
-      ),
+      home: const MyHomePage(),
+      onGenerateRoute: (RouteSettings settings) {
+        return EcodateRouter.buildRoute(
+          context,
+          settings,
+        );
+      },
     );
   }
 }
@@ -53,9 +55,14 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          debugPrint('This is where I will navigate to the other pages');
+          final SceneInfo sceneInfo = SceneInfo(
+            initialSegmentId: 1,
+            backgroundName: 'assets/img/default_background.png',
+          );
+          Navigator.of(context)
+              .pushReplacementNamed('/game', arguments: sceneInfo);
         },
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.play_arrow),
       ),
     );
   }

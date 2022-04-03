@@ -1,3 +1,4 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:ecodate/entities/character.dart';
 import 'package:ecodate/entities/database_loader.dart';
 import 'package:ecodate/entities/dialogue.dart';
@@ -38,28 +39,44 @@ class _GamePageState extends State<GamePage> {
     loadInitialData();
   }
 
+  bool showText = true;
+
   Future<dynamic> loadInitialData() async {
-    loadSegment(widget.sceneInfo.initialSegmentId);
-    final coal =
-        await DatabaseLoader.sharedInstance.loadCharacter(CharacterType.coal);
-    characters = [coal];
+    await loadSegment(widget.sceneInfo.initialSegmentId);
+    await loadCharacters(segment);
     return segment;
   }
 
-  void loadSegment(int segmentId) async {
+  Future<void> loadSegment(int segmentId) async {
     segment = await DatabaseLoader.sharedInstance.loadSegment(segmentId);
     setState(() => segmentIndex = 0);
   }
 
+  Future<void> loadCharacters(Segment localSegment) async {
+    final List<CharacterType> characterTypes =
+        localSegment.dialogueLines.map((e) => e.character).toSet().toList();
+    characters =
+        await DatabaseLoader.sharedInstance.loadCharacters(characterTypes);
+  }
+
   void loadNextScene() {
-    //Load scene from database
-    //Push and replace GameScreen with new scene info
+    final SceneInfo sceneInfo = SceneInfo(
+      initialSegmentId: 4,
+      backgroundName: 'assets/img/walkway_background.png',
+    );
+    Navigator.of(context).pushReplacementNamed('/game', arguments: sceneInfo);
   }
 
   void onTap() {
-    if ((segment.dialogueLines.length - 1) > segmentIndex) {
-      setState(() => segmentIndex++);
-    } else if (segment.options?.isNotEmpty ?? false) {
+    // if ((segment.dialogueLines.length - 1) > segmentIndex) {
+    //   setState(() => segmentIndex++);
+    // } else if (segment.options?.isNotEmpty ?? false) {
+    //   presentSegmentOption();
+    // } else {
+    //   loadNextScene();
+    // }
+
+    if (segment.options?.isNotEmpty ?? false) {
       presentSegmentOption();
     } else {
       loadNextScene();
@@ -69,6 +86,7 @@ class _GamePageState extends State<GamePage> {
   Widget _buildButton(FlagOption option) {
     return GestureDetector(
       onTap: () {
+        setState(() => showText = true);
         loadSegment(option.nextSegmentId);
         Navigator.of(context).pop();
       },
@@ -90,6 +108,7 @@ class _GamePageState extends State<GamePage> {
   }
 
   void presentSegmentOption() {
+    setState(() => showText = false);
     showDialog(
       context: context,
       builder: (ctx) {
@@ -166,81 +185,103 @@ class _GamePageState extends State<GamePage> {
   }
 
   Widget _buildUILayer() {
-    return GestureDetector(
-      onTap: () => onTap(),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Container(
-              height: 100,
-            ),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Container(
+            height: 100,
           ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                margin: const EdgeInsets.only(
-                  right: 10,
-                  left: 10,
+        ),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(
+                right: 10,
+                left: 10,
+              ),
+              padding: EdgeInsets.only(left: 15, right: 15, top: 10),
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(15),
+                  topLeft: Radius.circular(15),
                 ),
-                padding: EdgeInsets.only(left: 15, right: 15, top: 10),
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(15),
-                    topLeft: Radius.circular(15),
-                  ),
+                color: characters.whereCharIs(currerntLine.character)?.color ??
+                    Colors.white,
+                border: Border.all(
+                  width: 12.5,
                   color:
                       characters.whereCharIs(currerntLine.character)?.color ??
                           Colors.white,
-                  border: Border.all(
-                    width: 12.5,
-                    color:
-                        characters.whereCharIs(currerntLine.character)?.color ??
-                            Colors.white,
-                  ),
-                ),
-                child: BubText(
-                  characters.whereCharIs(currerntLine.character)?.name ?? '',
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.all(15),
-                margin: const EdgeInsets.only(
-                  bottom: 20,
-                  right: 10,
-                  left: 10,
+              child: BubText(
+                characters.whereCharIs(currerntLine.character)?.name ?? '',
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(15),
+              margin: const EdgeInsets.only(
+                bottom: 20,
+                right: 10,
+                left: 10,
+              ),
+              height: 300,
+              width: 1000,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(15),
+                  bottomRight: Radius.circular(15),
+                  bottomLeft: Radius.circular(15),
                 ),
-                height: 300,
-                width: 1000,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(15),
-                    bottomRight: Radius.circular(15),
-                    bottomLeft: Radius.circular(15),
-                  ),
-                  color: Colors.black.withAlpha(200),
-                  border: Border.all(
-                    width: 12.5,
-                    color:
-                        characters.whereCharIs(currerntLine.character)?.color ??
-                            Colors.white,
-                  ),
-                ),
-                child: Text(
-                  segment.dialogueLines[segmentIndex].textLine,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                  ),
+                color: Colors.black.withAlpha(200),
+                border: Border.all(
+                  width: 12.5,
+                  color:
+                      characters.whereCharIs(currerntLine.character)?.color ??
+                          Colors.white,
                 ),
               ),
-            ],
-          ),
-        ],
-      ),
+              child: showText
+                  ? AnimatedTextKit(
+                      isRepeatingAnimation: false,
+                      pause: Duration(seconds: 2),
+                      displayFullTextOnTap: true,
+                      onNext: (asd, sdf) {
+                        if ((segment.dialogueLines.length - 1) > segmentIndex) {
+                          setState(() => segmentIndex++);
+                        }
+                      },
+                      onNextBeforePause: (asd, sdf) {
+                        if ((segment.dialogueLines.length - 1) > segmentIndex) {
+                          //   setState(() => segmentIndex++);
+
+                          // setState(() => segmentIndex++);
+                        }
+                        debugPrint(asd.toString() + sdf.toString());
+                      },
+                      onFinished: () => onTap(),
+                      animatedTexts: segment.dialogueLines
+                          .map(
+                            (e) => TyperAnimatedText(
+                              e.textLine,
+                              textStyle: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 25,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onTap: onTap,
+                    )
+                  : Container(),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

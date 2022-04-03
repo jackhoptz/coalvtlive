@@ -9,43 +9,53 @@ abstract class DatabaseLoader {
 
   Future<Segment> loadSegment(int segmentId);
   Future<CharacterInfo> loadCharacter(CharacterType characterType);
+  Future<List<CharacterInfo>> loadCharacters(List<CharacterType> characterType);
 }
 
 class MockDatabaseLoader implements DatabaseLoader {
+  @override
+  Future<Segment> loadSegment(segmentId) async {
+    return mockSegmentsData.firstWhere((element) => element.id == segmentId);
+  }
+
+  @override
+  Future<CharacterInfo> loadCharacter(CharacterType characterType) async {
+    return mockCharacterData
+        .firstWhere((element) => element.characterType == characterType);
+  }
+
+  @override
+  Future<List<CharacterInfo>> loadCharacters(
+      List<CharacterType> characterTypes) async {
+    return mockCharacterData
+        .where((element) => characterTypes.contains(element.characterType))
+        .toList();
+  }
+
   List<Segment> mockSegmentsData = [
     Segment(
       id: 1,
       dialogueLines: [
         Dialogue(
-            character: CharacterType.coal, textLine: 'Hello, there player'),
+          character: CharacterType.raika,
+          textLine: 'Hi, I\'m Raika',
+        ),
         Dialogue(
-            character: CharacterType.coal,
-            textLine:
-                'This is a test to show the inner workings of the engine that I\'ve built'),
-        Dialogue(
-            character: CharacterType.coal,
-            textLine: 'I believe it should work for now'),
-        Dialogue(
-            character: CharacterType.coal,
-            textLine: 'But I want to make this not hard coded'),
-        Dialogue(
-            character: CharacterType.coal,
-            textLine: 'For the time being this is fine though'),
-        Dialogue(
-            character: CharacterType.coal,
-            textLine: 'Time to select an option'),
+          character: CharacterType.kairi,
+          textLine: 'And I\'m Kairi',
+        ),
       ],
       options: [
         FlagOption(
           segmentId: 1,
           nextSegmentId: 2,
-          text: 'I\'ll select this',
+          text: 'And together we are... ecotone',
           value: 1,
         ),
         FlagOption(
           segmentId: 1,
           nextSegmentId: 3,
-          text: 'I refuse to select the other option',
+          text: 'They are clearly imposters',
           value: 2,
         ),
       ],
@@ -54,50 +64,72 @@ class MockDatabaseLoader implements DatabaseLoader {
       id: 2,
       dialogueLines: [
         Dialogue(
-            character: CharacterType.coal,
-            textLine: 'You selected the option that takes you to segment 2'),
+          character: CharacterType.kairi,
+          textLine: 'Everybody ikuyo...',
+        ),
         Dialogue(
-            character: CharacterType.coal,
-            textLine:
-                'This means you won\'t ever see segment 3 unless you start this chapter again'),
+          character: CharacterType.raika,
+          textLine: 'Ecotone!',
+        ),
         Dialogue(
-            character: CharacterType.coal,
-            textLine:
-                'When I\'ve added a little more code, these options will also save a flag that might be important later on in the game'),
+          character: CharacterType.kairi,
+          textLine: 'One more time! Ikuyo',
+        ),
         Dialogue(
-            character: CharacterType.coal,
-            textLine: 'But for now it\'s time to goto the next scene'),
+          character: CharacterType.raika,
+          textLine: 'Ecotone!!!',
+        ),
+        Dialogue(
+          character: CharacterType.kairi,
+          textLine:
+              'Let\'s head out to our super secret special... hideout! Wahwahwahawhwhahhwhahwa...',
+        ),
       ],
     ),
     Segment(
       id: 3,
       dialogueLines: [
         Dialogue(
-            character: CharacterType.coal,
-            textLine: 'You selected the option that takes you to segment 3'),
+          character: CharacterType.raika,
+          textLine: 'You selected the option that takes you to segment 3',
+        ),
         Dialogue(
-            character: CharacterType.coal,
-            textLine:
-                'This means you won\'t ever see segment 2 unless you start this chapter again'),
+          character: CharacterType.kairi,
+          textLine:
+              'This means you won\'t ever see segment 2 unless you start this chapter again',
+        ),
         Dialogue(
-            character: CharacterType.coal,
-            textLine:
-                'When I\'ve added a little more code, these options will also save a flag that might be important later on in the game'),
+          character: CharacterType.raika,
+          textLine:
+              'When I\'ve added a little more code, these options will also save a flag that might be important later on in the game',
+        ),
         Dialogue(
-            character: CharacterType.coal,
-            textLine: 'But for now it\'s time to goto the next scene'),
+          character: CharacterType.kairi,
+          textLine: 'But for now it\'s time to goto the next scene',
+        ),
+      ],
+    ),
+    Segment(
+      id: 4,
+      dialogueLines: [
+        Dialogue(
+          character: CharacterType.kairi,
+          textLine: 'This is the new scene',
+        ),
+        Dialogue(
+          character: CharacterType.kairi,
+          textLine: 'It has a different background',
+        ),
+        Dialogue(
+          character: CharacterType.raika,
+          textLine: 'This will be dynamically loaded based on previous choices',
+        ),
       ],
     ),
   ];
 
-  @override
-  Future<Segment> loadSegment(segmentId) async {
-    return mockSegmentsData.firstWhere((element) => element.id == segmentId);
-  }
-
-  @override
-  Future<CharacterInfo> loadCharacter(CharacterType characterType) async {
-    return CharacterInfo(
+  List<CharacterInfo> mockCharacterData = [
+    CharacterInfo(
       name: 'Coal Troptaz',
       logoUrl: 'assets/img/coal_logo.png',
       color: Color(0xFF5089ff),
@@ -108,6 +140,30 @@ class MockDatabaseLoader implements DatabaseLoader {
         )
       ],
       characterType: CharacterType.coal,
-    );
-  }
+    ),
+    CharacterInfo(
+      name: 'Raika Bob',
+      logoUrl: 'assets/img/coal_logo.png',
+      color: Color(0xFFd595ed),
+      expressions: [
+        ExpressionInfo(
+          expressionUrl: 'assets/img/raika_expression_none.png',
+          expression: ExpressionType.none,
+        )
+      ],
+      characterType: CharacterType.raika,
+    ),
+    CharacterInfo(
+      name: 'Kairi Usa',
+      logoUrl: 'assets/img/coal_logo.png',
+      color: Color(0xFF95ff93),
+      expressions: [
+        ExpressionInfo(
+          expressionUrl: 'assets/img/kairi_expression_none.png',
+          expression: ExpressionType.none,
+        )
+      ],
+      characterType: CharacterType.kairi,
+    ),
+  ];
 }

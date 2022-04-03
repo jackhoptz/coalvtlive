@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 
 enum CharacterType {
   coal,
+  kairi,
+  raika,
 }
 
 class CharacterInfo {
