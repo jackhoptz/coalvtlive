@@ -1,5 +1,5 @@
 import 'package:ecodate/entities/segment.dart';
-import 'package:ecodate/pages/scenarios/game_page.dart';
+import 'package:ecodate/pages/scenario_runner/game_page.dart';
 import 'package:flutter/material.dart';
 
 class FlagState {}

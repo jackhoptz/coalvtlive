@@ -1,8 +1,8 @@
-import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:ecodate/entities/character.dart';
 import 'package:ecodate/entities/database_loader.dart';
 import 'package:ecodate/entities/dialogue.dart';
 import 'package:ecodate/entities/segment.dart';
+import 'package:ecodate/pages/scenario_runner/animated_text.dart';
 import 'package:flutter/material.dart';
 
 class GameInfo {
