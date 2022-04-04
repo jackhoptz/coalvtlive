@@ -1,8 +1,5 @@
+import 'package:ecodate/database/migrations_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:pulse_move/database/migrations_manager.dart';
-import 'package:pulse_move/helpers/logger.dart';
-import 'package:pulse_move/widgets/smoked_container.dart';
 import 'package:sqflite/sqlite_api.dart';
 
 import 'database_manager.dart';
@@ -14,9 +11,9 @@ class DatabaseProvider<T extends Entity> extends StatefulWidget {
   final Widget child;
 
   const DatabaseProvider({
-    @required Widget child,
-    @required DatabaseManager manager,
-    @required List<EntityProvider<T>> entityProviders,
+    required Widget child,
+    required DatabaseManager manager,
+    required List<EntityProvider<T>> entityProviders,
   }) : this._(child, manager, entityProviders);
 
   const DatabaseProvider._(this.child, this._manager, this._entityProviders);
@@ -33,8 +30,8 @@ class DatabaseProvider<T extends Entity> extends StatefulWidget {
   }
 
   static DatabaseManager managerOf(BuildContext context) {
-    final _InheritedDatabaseProvider dbProvider =
-        context.inheritFromWidgetOfExactType(_InheritedDatabaseProvider);
+    final _InheritedDatabaseProvider? dbProvider = context
+        .dependOnInheritedWidgetOfExactType<_InheritedDatabaseProvider>();
 
     if (dbProvider == null) {
       throw DatabaseProviderNotFoundError(
@@ -46,8 +43,8 @@ class DatabaseProvider<T extends Entity> extends StatefulWidget {
 
   static EntityProvider<T> entityProviderOf<T extends Entity>(
       BuildContext context) {
-    final _InheritedDatabaseProvider dbProvider =
-        context.inheritFromWidgetOfExactType(_InheritedDatabaseProvider);
+    final _InheritedDatabaseProvider? dbProvider = context
+        .dependOnInheritedWidgetOfExactType<_InheritedDatabaseProvider>();
 
     if (dbProvider == null) {
       throw DatabaseProviderNotFoundError(
@@ -58,16 +55,13 @@ class DatabaseProvider<T extends Entity> extends StatefulWidget {
       throw EntityProviderNotFoundError(T, context.widget.runtimeType);
     }
 
-    final EntityProvider<T> ep =
-        dbProvider.data._entityProviders.firstWhere((ep) {
-      return ep is EntityProvider<T>;
-    }, orElse: () {
-      throw EntityProviderNotFoundError(T, context.widget.runtimeType);
-    });
-    if (ep == null) {
+    try {
+      final ep =
+          dbProvider.data._entityProviders.whereType<EntityProvider<T>>().first;
+      return ep;
+    } catch (e) {
       throw EntityProviderNotFoundError(T, context.widget.runtimeType);
     }
-    return ep;
   }
 
   @override
@@ -84,20 +78,20 @@ class _DatabaseProviderState<T extends Entity> extends State<DatabaseProvider> {
 
   Future<Database> openDB() async {
     return await _manager.open(onCreate: (db, version) async {
-      logger.d('Did create db!');
+      debugPrint('Did create db!');
       for (var p in _entityProviders) {
         await p.builder().createTable(db);
         p.db = db;
       }
-      logger.d('Did create all tables');
+      debugPrint('Did create all tables');
     }, onOpen: (db) {
-      logger.d('Did open db!');
+      debugPrint('Did open db!');
       for (var p in _entityProviders) {
         p.db = db;
       }
     }, onUpdate: (db, int oldVersion, int newVersion) async {
       final batch = db.batch();
-      logger.d('Migrating from $oldVersion to $newVersion');
+      debugPrint('Migrating from $oldVersion to $newVersion');
       for (int i = oldVersion + 1; i <= newVersion; i++) {
         // Load migration script from file
         final script = await MigrationsManager.getMigrationScript(i);
@@ -109,10 +103,10 @@ class _DatabaseProviderState<T extends Entity> extends State<DatabaseProvider> {
       try {
         await batch.commit();
       } catch (error) {
-        logger.e('Migration failed: ${error.toString()}');
+        debugPrint('Migration failed: ${error.toString()}');
       }
 
-      logger.d('migration complete');
+      debugPrint('migration complete');
     });
   }
 
@@ -126,12 +120,13 @@ class _DatabaseProviderState<T extends Entity> extends State<DatabaseProvider> {
           case ConnectionState.waiting:
             return const MaterialApp(
               home: Scaffold(
-                body: SmokedContainer(),
+                body: Center(child: Text('A Game By Coal Troptaz')),
               ),
             ); // Empty screen for when database has not yet loaded
           default:
             if (snapshot.hasError) {
-              logger.e('Database builder error: ${snapshot.error.toString()}');
+              debugPrint(
+                  'Database builder error: ${snapshot.error.toString()}');
               return Center(
                 child: Text(
                   'Failed to open database: ${snapshot.error.toString()}',
@@ -142,7 +137,10 @@ class _DatabaseProviderState<T extends Entity> extends State<DatabaseProvider> {
               );
             } else {
               for (var p in _entityProviders) {
-                p.db = snapshot.data;
+                final Database? db = snapshot.data;
+                if (db != null) {
+                  p.db = db;
+                }
               }
               return _InheritedDatabaseProvider(
                 child: widget.child,
@@ -159,9 +157,9 @@ class _InheritedDatabaseProvider extends InheritedWidget {
   final _DatabaseProviderState data;
 
   const _InheritedDatabaseProvider({
-    Key key,
-    @required this.data,
-    @required Widget child,
+    Key? key,
+    required this.data,
+    required Widget child,
   }) : super(key: key, child: child);
 
   @override

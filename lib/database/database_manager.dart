@@ -3,22 +3,21 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart';
-import 'package:pulse_move/helpers/logger.dart';
 import 'package:sqflite/sqflite.dart';
 
 class DatabaseManager {
   final int databaseVersion = 22;
   final String databaseName;
-  Database db;
+  late Database db;
 
-  DatabaseManager({@required this.databaseName});
-  Future<Database> open(
-      {Function(Database db, int version) onCreate,
-      String databasePath,
-      Function(Database db) onOpen,
-      Function(Database db, int oldVersion, int newVersion) onUpdate}) async {
+  DatabaseManager({required this.databaseName});
+  Future<Database> open({
+    required Function(Database db, int version) onCreate,
+    String? databasePath,
+    required Function(Database db) onOpen,
+    required Function(Database db, int oldVersion, int newVersion) onUpdate,
+  }) async {
     databasePath ??= await getDatabasesPath();
     final path = join(databasePath, databaseName);
 
@@ -40,7 +39,7 @@ class DatabaseManager {
         // Write and flush the bytes written
         await File(path).writeAsBytes(bytes, flush: true);
       } catch (error) {
-        logger.i('No initial data seed used');
+        debugPrint('No initial data seed used');
       }
     }
 
@@ -58,7 +57,7 @@ class DatabaseManager {
   @override
   String toString() {
     final Map<String, String> info = {
-      'status': db == null ? 'closed' : db.isOpen
+      'status': db == null ? 'closed' : db.isOpen.toString()
     };
 
     if (db != null) {

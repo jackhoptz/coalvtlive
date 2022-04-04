@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import 'package:pulse_move/helpers/logger.dart';
 import 'package:sqflite/sqflite.dart';
 
 abstract class Mappable<T> {
@@ -11,48 +10,49 @@ abstract class Entity extends Mappable {
   String tableName();
   final String columnId = 'Id';
 
+  Entity({required this.id});
+
   /// Primary key in the DB
-  int id;
+  int? id;
   Future createTable(Database db);
 }
 
 typedef EntityBuilder<T extends Entity> = T Function();
 
 class EntityProvider<T extends Entity> {
-  Database db;
+  late Database db;
   final EntityBuilder<T> builder;
 
   /// Will not continue on error in batch operation
   final bool _debugBatchOperation = false;
 
   EntityProvider({
-    @required EntityBuilder<T> builder,
+    required EntityBuilder<T> builder,
   }) : this._(builder);
 
   EntityProvider._(this.builder) {
     if (_debugBatchOperation) {
-      logger.w(
+      debugPrint(
           '[EntityProvider]: _debugBatchOperation is ON! all batch operations will stop on error');
     }
   }
 
-  Future<T> getOne(int id) async {
+  Future<T?> getOne(int id) async {
     final T entity = builder();
-    final List<Map> maps = await db.query(entity.tableName(),
-            where: 'Id = ?', whereArgs: [id], limit: 1) ??
-        [];
+    final List<Map<String, dynamic>> maps = await db.query(entity.tableName(),
+        where: 'Id = ?', whereArgs: [id], limit: 1);
     if (maps.isNotEmpty) {
       return entity.fromJson(maps.first);
     }
     return null;
   }
 
-  Future<T> findOne({
-    String where,
-    List<dynamic> whereArgs,
+  Future<T?> findOne({
+    String? where,
+    List<dynamic>? whereArgs,
   }) async {
     final T entity = builder();
-    final List<Map> maps = await db.query(entity.tableName(),
+    final List<Map<String, dynamic>> maps = await db.query(entity.tableName(),
         where: where, whereArgs: whereArgs, limit: 1);
     if (maps.isNotEmpty) {
       return entity.fromJson(maps.first);
@@ -60,13 +60,13 @@ class EntityProvider<T extends Entity> {
     return null;
   }
 
-  Future<List<T>> findAll({
-    String where,
-    List<dynamic> whereArgs,
-    String orderBy,
+  Future<List<T>?> findAll({
+    String? where,
+    List<dynamic>? whereArgs,
+    String? orderBy,
   }) async {
     final T entity = builder();
-    final List<Map> maps = await db.query(entity.tableName(),
+    final List<Map<String, dynamic>> maps = await db.query(entity.tableName(),
         where: where, whereArgs: whereArgs, orderBy: orderBy);
 
     final List<T> result = [];
@@ -78,26 +78,26 @@ class EntityProvider<T extends Entity> {
   }
 
   Future<T> findLast({
-    String where,
-    List<dynamic> whereArgs,
+    String? where,
+    List<dynamic>? whereArgs,
   }) async {
     final T entity = builder();
-    final List<Map> maps = await db.query(entity.tableName(),
+    final List<Map<String, dynamic>> maps = await db.query(entity.tableName(),
         where: where, whereArgs: whereArgs, orderBy: 'Id DESC', limit: 1);
 
     return entity.fromJson(maps.last);
   }
 
   /// Inserts an entity into a database and creates local id
-  Future<void> insert(T entity, {Batch batch}) async {
-    final dynamic executor = batch == null ? db : batch;
+  Future<void> insert(T entity, {Batch? batch}) async {
+    final dynamic executor = batch ?? db;
     try {
       final recordId = await executor.insert(
           entity.tableName(), entity.toJson(),
           conflictAlgorithm: ConflictAlgorithm.replace);
       entity.id = recordId;
     } catch (err) {
-      logger.e(err.toString());
+      debugPrint(err.toString());
     }
   }
 
@@ -105,11 +105,11 @@ class EntityProvider<T extends Entity> {
   /// If there is a `localId` presented - will update straight away
   /// If there is a `Id` only present - will search for an entity with such `Id`, then update or insert.
   /// If neither is present - will run `insert` and create `localId`
-  Future<void> upsert(T entity, {Batch batch}) async {
-    final dynamic executor = batch == null ? db : batch;
+  Future<void> upsert(T entity, {Batch? batch}) async {
+    final dynamic executor = batch ?? db;
 
     if (entity.id != null) {
-      final T storedData =
+      final T? storedData =
           await findOne(where: 'Id = ?', whereArgs: [entity.id]);
 
       if (storedData != null) {
@@ -137,25 +137,25 @@ class EntityProvider<T extends Entity> {
 
       return recordIds;
     } catch (error) {
-      logger.e(error.toString());
+      debugPrint(error.toString());
       return [];
     }
   }
 
   Future<int> update(
     T entity, {
-    Batch batch,
+    Batch? batch,
   }) async {
-    final dynamic executor = batch == null ? db : batch;
+    final dynamic executor = batch ?? db;
     return await executor.update(entity.tableName(), entity.toJson(),
         where: 'Id = ?', whereArgs: [entity.id]);
   }
 
   Future<int> delete(
     T entity, {
-    Batch batch,
+    Batch? batch,
   }) async {
-    final dynamic executor = batch == null ? db : batch;
+    final dynamic executor = batch ?? db;
     return await executor
         .delete(entity.tableName(), where: 'Id = ?', whereArgs: [entity.id]);
   }
@@ -178,7 +178,7 @@ class EntityProvider<T extends Entity> {
   /// Make sure list of entities passed is not filtered and is the only thing that should be there.
   Future<int> deleteAllNotInList(List<T> remoteEntities) async {
     try {
-      if (remoteEntities?.isEmpty ?? true) {
+      if (remoteEntities.isEmpty) {
         return 0;
       }
 
@@ -194,7 +194,7 @@ class EntityProvider<T extends Entity> {
           where: 'Id NOT IN (${entityIds.join(',')}) OR Id IS NULL');
       return result;
     } catch (error) {
-      logger.e(error.toString());
+      debugPrint(error.toString());
       return -1;
     }
   }
