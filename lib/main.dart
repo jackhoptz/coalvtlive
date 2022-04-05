@@ -1,3 +1,9 @@
+import 'package:ecodate/database/database_manager.dart';
+import 'package:ecodate/database/database_provider.dart';
+import 'package:ecodate/database/entity.dart';
+import 'package:ecodate/entities/character.dart';
+import 'package:ecodate/entities/dialogue.dart';
+import 'package:ecodate/entities/expression.dart';
 import 'package:ecodate/entities/segment.dart';
 import 'package:ecodate/pages/scenario_runner/game_page.dart';
 import 'package:ecodate/router.dart';
@@ -10,8 +16,7 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildApp(BuildContext context) {
     return MaterialApp(
       title: 'ecodate',
       theme: ThemeData(
@@ -24,6 +29,21 @@ class MyApp extends StatelessWidget {
           settings,
         );
       },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DatabaseProvider(
+      child: _buildApp(context),
+      manager: DatabaseManager(databaseName: 'ecodate.db'),
+      entityProviders: [
+        EntityProvider(builder: () => CharacterInfo.factoryDefault()),
+        EntityProvider(builder: () => DialogueInfo.factoryDefault()),
+        EntityProvider(builder: () => FlagOption.factoryDefault()),
+        EntityProvider(builder: () => ExpressionInfo.factoryDefault()),
+        EntityProvider(builder: () => Segment.factoryDefault()),
+      ],
     );
   }
 }

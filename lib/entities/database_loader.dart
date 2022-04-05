@@ -36,13 +36,15 @@ class MockDatabaseLoader implements DatabaseLoader {
     Segment(
       id: 1,
       dialogueLines: [
-        Dialogue(
+        DialogueInfo(
           character: CharacterType.raika,
           textLine: 'Hi, I\'m Raika',
+          segmentId: 1,
         ),
-        Dialogue(
+        DialogueInfo(
           character: CharacterType.kairi,
           textLine: 'And I\'m Kairi',
+          segmentId: 1,
         ),
       ],
       options: [
@@ -63,66 +65,84 @@ class MockDatabaseLoader implements DatabaseLoader {
     Segment(
       id: 2,
       dialogueLines: [
-        Dialogue(
+        DialogueInfo(
           character: CharacterType.kairi,
           textLine: 'Everybody ikuyo...',
+          segmentId: 2,
         ),
-        Dialogue(
+        DialogueInfo(
           character: CharacterType.raika,
           textLine: 'Ecotone!',
+          segmentId: 2,
         ),
-        Dialogue(
+        DialogueInfo(
           character: CharacterType.kairi,
           textLine: 'One more time! Ikuyo',
+          segmentId: 2,
         ),
-        Dialogue(
+        DialogueInfo(
           character: CharacterType.raika,
           textLine: 'Ecotone!!!',
+          segmentId: 2,
         ),
-        Dialogue(
+        DialogueInfo(
           character: CharacterType.kairi,
           textLine:
               'Let\'s head out to our super secret special... hideout! Wahwahwahawhwhahhwhahwa...',
+          segmentId: 2,
         ),
       ],
     ),
     Segment(
       id: 3,
       dialogueLines: [
-        Dialogue(
+        DialogueInfo(
           character: CharacterType.raika,
           textLine: 'You selected the option that takes you to segment 3',
+          segmentId: 3,
         ),
-        Dialogue(
+        DialogueInfo(
           character: CharacterType.kairi,
           textLine:
               'This means you won\'t ever see segment 2 unless you start this chapter again',
+          segmentId: 3,
         ),
-        Dialogue(
+        DialogueInfo(
           character: CharacterType.raika,
           textLine:
               'When I\'ve added a little more code, these options will also save a flag that might be important later on in the game',
+          segmentId: 3,
         ),
-        Dialogue(
+        DialogueInfo(
           character: CharacterType.kairi,
           textLine: 'But for now it\'s time to goto the next scene',
+          segmentId: 3,
         ),
       ],
     ),
     Segment(
       id: 4,
       dialogueLines: [
-        Dialogue(
+        DialogueInfo(
           character: CharacterType.kairi,
           textLine: 'This is the new scene',
+          segmentId: 4,
         ),
-        Dialogue(
+        DialogueInfo(
           character: CharacterType.kairi,
           textLine: 'It has a different background',
+          segmentId: 4,
         ),
-        Dialogue(
+        DialogueInfo(
           character: CharacterType.raika,
           textLine: 'This will be dynamically loaded based on previous choices',
+          segmentId: 4,
+        ),
+        DialogueInfo(
+          character: CharacterType.raika,
+          textLine:
+              'I loved The Emoji Movie! It\'s the best because Gene is an emoji that lives in Textopolis, a digital city inside the phone of his user, a teenager named Alex. He is the son of two meh emojis named Mel and Mary and is able to make multiple expressions despite his parents\' upbringing. His parents are hesitant about him going to work, but Gene insists so that he can feel useful. Upon receiving a text from his love interest Addie McCallister, Alex decides to send her an emoji. When Gene is selected, he panics, makes a panicked',
+          segmentId: 4,
         ),
       ],
     ),

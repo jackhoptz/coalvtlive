@@ -29,7 +29,7 @@ class _GamePageState extends State<GamePage> {
   Segment get segment => _segment!;
   set segment(Segment value) => _segment = value;
 
-  Dialogue get currerntLine {
+  DialogueInfo get currerntLine {
     return segment.dialogueLines[segmentIndex];
   }
 

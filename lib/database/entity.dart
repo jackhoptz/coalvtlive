@@ -10,7 +10,11 @@ abstract class Entity extends Mappable {
   String tableName();
   final String columnId = 'Id';
 
-  Entity({required this.id});
+  Entity({this.id});
+
+  factory Entity.factoryDefault() {
+    throw UnimplementedError();
+  }
 
   /// Primary key in the DB
   int? id;
